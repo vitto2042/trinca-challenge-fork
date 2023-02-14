@@ -31,7 +31,10 @@ namespace Serverless_Api
 
             var lookups = await _snapshots.AsQueryable<Lookups>("Lookups").SingleOrDefaultAsync();
 
-            foreach (var personId in lookups.PeopleIds)
+            var peopleMinusMods = lookups.PeopleIds;
+            peopleMinusMods.RemoveAll(x => lookups.ModeratorIds.Contains(x));
+
+            foreach (var personId in peopleMinusMods)
             {
                 var person = await _persons.GetAsync(personId);
                 var @event = new PersonHasBeenInvitedToBbq(bbq.Id, bbq.Date, bbq.Reason);
