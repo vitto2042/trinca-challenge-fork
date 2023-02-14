@@ -29,6 +29,36 @@ namespace Domain.Entities
                 IsTrincasPaying = true;
         }
 
+        public void When(BbqStatusChanged @event)
+        {
+            Status = @event.BbqStatus;
+        }
+
+        public void When(InviteWasAccepted @event)
+        {
+            float meatAdd = 0.0f;
+            float vegsAdd = 0.0f;
+
+            if (@event.IsVeg)
+            {
+                vegsAdd = 0.6f;
+            }
+            else
+            {
+                meatAdd = 0.3f;
+                vegsAdd = 0.3f;
+            }
+
+            if(ShoppingList == null)
+            {
+                ShoppingList = new ShoppingList(vegsAdd, meatAdd);
+            }
+            else
+            {
+                ShoppingList = new ShoppingList(ShoppingList.Vegetables + vegsAdd, ShoppingList.Meat + meatAdd);
+            }
+        }
+
         public void When(InviteWasDeclined @event)
         {
             //TODO:Deve ser possível rejeitar um convite já aceito antes.
