@@ -31,7 +31,7 @@ namespace Domain.Entities
             return (vegsAdd, meatAdd);
         }
 
-        public void When(ThereIsSomeoneElseInTheMood @event)
+        internal void When(ThereIsSomeoneElseInTheMood @event)
         {
             Id = @event.Id.ToString();
             Date = @event.Date;
@@ -39,7 +39,7 @@ namespace Domain.Entities
             Status = BbqStatus.New;
         }
 
-        public void When(BbqStatusUpdated @event)
+        internal void When(BbqStatusUpdated @event)
         {
             if (@event.GonnaHappen)
             {
@@ -54,12 +54,12 @@ namespace Domain.Entities
                 IsTrincasPaying = true;
         }
 
-        public void When(BbqStatusChanged @event)
+        internal void When(BbqStatusChanged @event)
         {
             Status = @event.BbqStatus;
         }
 
-        public void When(InviteWasAccepted @event)
+        internal void When(InviteWasAccepted @event)
         {
             (float vegsAdd, float meatAdd) = GetShoppingItems(@event.IsVeg);
             ShoppingList = ShoppingList.Add(vegsAdd, meatAdd);
@@ -67,7 +67,7 @@ namespace Domain.Entities
             ConfirmedPeople.Add(@event.PersonId);
         }
 
-        public void When(InviteWasDeclined @event)
+        internal void When(InviteWasDeclined @event)
         {
             //TODO:Deve ser possível rejeitar um convite já aceito antes.
             //Se este for o caso, a quantidade de comida calculada pelo aceite anterior do convite
