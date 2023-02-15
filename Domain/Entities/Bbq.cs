@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Domain.Events;
 
 namespace Domain.Entities
@@ -10,6 +11,7 @@ namespace Domain.Entities
         public DateTime Date { get; set; }
         public bool IsTrincasPaying { get; set; }
         public ShoppingList? ShoppingList { get; set; }
+        public List<string>? ConfirmedPeople { get; set; }
         public void When(ThereIsSomeoneElseInTheMood @event)
         {
             Id = @event.Id.ToString();
@@ -21,7 +23,10 @@ namespace Domain.Entities
         public void When(BbqStatusUpdated @event)
         {
             if (@event.GonnaHappen)
+            {
                 Status = BbqStatus.PendingConfirmations;
+                ConfirmedPeople= new List<string>();
+            }
             else 
                 Status = BbqStatus.ItsNotGonnaHappen;
 
@@ -57,6 +62,8 @@ namespace Domain.Entities
             {
                 ShoppingList = new ShoppingList(ShoppingList.Vegetables + vegsAdd, ShoppingList.Meat + meatAdd);
             }
+
+            ConfirmedPeople.Add(@event.PersonId);
         }
 
         public void When(InviteWasDeclined @event)
