@@ -1,4 +1,6 @@
 ﻿using Eveneum;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Domain.Repositories
@@ -7,6 +9,7 @@ namespace Domain.Repositories
     {
         Task<StreamHeaderResponse> GetHeaderAsync(string streamId);
         Task<T?> GetAsync(string streamId);
+        Task<List<IEvent>> GetEventsAsync(string streamId);
         Task SaveAsync(T entity);
     }
 }

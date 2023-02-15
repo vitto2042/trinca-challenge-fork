@@ -73,6 +73,31 @@ namespace Domain.Entities
             //deve ser retirado da lista de compras do churrasco.
             //Se ao rejeitar, o número de pessoas confirmadas no churrasco for menor que sete,
             //o churrasco deverá ter seu status atualizado para “Pendente de confirmações”. 
+            
+            float meatSub = 0.0f;
+            float vegsSub = 0.0f;
+
+            if (@event.IsVeg)
+            {
+                vegsSub = 0.6f;
+            }
+            else
+            {
+                meatSub = 0.3f;
+                vegsSub = 0.3f;
+            }
+
+            ShoppingList = new ShoppingList(
+                ShoppingList.Vegetables - vegsSub,
+                ShoppingList.Meat - meatSub);
+
+            ConfirmedPeople.Remove(@event.PersonId);
+
+            if(Status == BbqStatus.Confirmed
+                && ConfirmedPeople.Count < 7)
+            {
+                Status = BbqStatus.PendingConfirmations;
+            }
         }
 
         public object TakeSnapshot()

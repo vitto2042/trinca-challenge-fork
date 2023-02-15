@@ -1,5 +1,6 @@
 ﻿using Eveneum;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -25,6 +26,20 @@ namespace Domain.Repositories
             var @events = stream.Stream.Value.Events.Select(@event => (IEvent)@event.Body);
             entity.Rehydrate(@events);
             return entity;
+        }
+
+        public virtual async Task<List<IEvent>> GetEventsAsync(string streamId)
+        {
+            var stream = await _eventStore.ReadStream(streamId, new ReadStreamOptions { MaxItemCount = int.MaxValue, IgnoreSnapshots = true });
+
+            var entity = new T();
+
+            if (stream.Stream == null)
+                return null;
+
+            return stream.Stream.Value.Events
+                .Select(@event => (IEvent)@event.Body)
+                .ToList();
         }
 
         public async Task<StreamHeaderResponse> GetHeaderAsync(string streamId)
