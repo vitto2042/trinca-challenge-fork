@@ -25,6 +25,7 @@ namespace Domain.Entities
             if (@event.GonnaHappen)
             {
                 Status = BbqStatus.PendingConfirmations;
+                ShoppingList = new ShoppingList();
                 ConfirmedPeople= new List<string>();
             }
             else 
@@ -54,15 +55,7 @@ namespace Domain.Entities
                 vegsAdd = 0.3f;
             }
 
-            if(ShoppingList == null)
-            {
-                ShoppingList = new ShoppingList(vegsAdd, meatAdd);
-            }
-            else
-            {
-                ShoppingList = new ShoppingList(ShoppingList.Vegetables + vegsAdd, ShoppingList.Meat + meatAdd);
-            }
-
+            ShoppingList = ShoppingList.Add(vegsAdd, meatAdd);
             ConfirmedPeople.Add(@event.PersonId);
         }
 
@@ -87,10 +80,7 @@ namespace Domain.Entities
                 vegsSub = 0.3f;
             }
 
-            ShoppingList = new ShoppingList(
-                ShoppingList.Vegetables - vegsSub,
-                ShoppingList.Meat - meatSub);
-
+            ShoppingList = ShoppingList.Sub(vegsSub, meatSub);
             ConfirmedPeople.Remove(@event.PersonId);
 
             if(Status == BbqStatus.Confirmed

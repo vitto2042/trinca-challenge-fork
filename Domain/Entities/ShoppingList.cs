@@ -6,6 +6,10 @@ namespace Domain.Entities
 {
     public class ShoppingList : ValueObject
     {
+        public ShoppingList()
+        {
+        }
+
         public ShoppingList(
             float vegetables,
             float meat)
@@ -17,12 +21,22 @@ namespace Domain.Entities
         public float Vegetables { get; private set; } = 0.0f;
         public float Meat { get; private set; } = 0.0f;
 
+        public ShoppingList Add(float vegs, float meat)
+        {
+            return new ShoppingList(Vegetables + vegs, Meat + meat);
+        }
+
+        public ShoppingList Sub(float vegs, float meat)
+        {
+            return new ShoppingList(Vegetables - vegs, Meat - meat);
+        }
+
         public object TakeSnapShot()
         {
             return new
             {
-                Vegetables,
-                Meat
+                Vegatebles = Vegetables.ToString("0.0"),
+                Meat = Meat.ToString("0.0")
             };
         }
     }
