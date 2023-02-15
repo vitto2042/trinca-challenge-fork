@@ -4,21 +4,18 @@ using Domain.Repositories;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using CrossCutting;
+using Application.Interfaces;
 
 namespace Serverless_Api
 {
     public partial class RunAcceptInvite
     {
         private readonly Person _user;
-        private readonly SnapshotStore _snapshots;
-        private readonly IPersonRepository _repository;
-        private readonly IBbqRepository _bbqs;
-        public RunAcceptInvite(IPersonRepository repository, Person user, IBbqRepository bbqs, SnapshotStore snapshots)
+        private readonly IPersonService _personService;
+        public RunAcceptInvite(Person user, IPersonService personService)
         {
             _user = user;
-            _repository = repository;
-            _bbqs = bbqs;
-            _snapshots = snapshots;
+            _personService = personService;
         }
 
         [Function(nameof(RunAcceptInvite))]
@@ -26,35 +23,9 @@ namespace Serverless_Api
         {
             InviteAnswer answer = await req.Body<InviteAnswer>();
 
-            Person person = await _repository.GetAsync(_user.Id);
+            object? response = await _personService.AcceptInviteAsync(_user.Id, inviteId, answer.IsVeg);
 
-            if(person.Invites
-                .Any(x => x.Id == inviteId
-                    && x.Status == InviteStatus.Accepted))
-            {
-                return await req.CreateResponse(System.Net.HttpStatusCode.UnprocessableEntity, "Invite Already accepted");
-            }
-
-            InviteWasAccepted @acceptInviteEvent = new InviteWasAccepted { InviteId = inviteId, IsVeg = answer.IsVeg, PersonId = person.Id };
-
-            person.Apply(@acceptInviteEvent);
-
-            await _repository.SaveAsync(person);
-
-            //implementar efeito do aceite do convite no churrasco
-            Bbq bbq = await _bbqs.GetAsync(inviteId);
-            bbq.Apply(@acceptInviteEvent);
-
-            //quando tiver 7 pessoas ele está confirmado
-            if(bbq.ConfirmedPeople.Count == 7)
-            {
-                BbqStatusChanged @chagedBbqStatusEvent = new BbqStatusChanged(BbqStatus.Confirmed);
-                bbq.Apply(@chagedBbqStatusEvent);
-            }
-
-            await _bbqs.SaveAsync(bbq);
-
-            return await req.CreateResponse(System.Net.HttpStatusCode.OK, person.TakeSnapshot());
+            return await req.CreateResponse(System.Net.HttpStatusCode.OK, response);
         }
     }
 }

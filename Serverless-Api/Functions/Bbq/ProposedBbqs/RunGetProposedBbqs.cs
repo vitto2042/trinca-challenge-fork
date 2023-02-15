@@ -1,4 +1,5 @@
 using System.Net;
+using Application.Interfaces;
 using Domain.Entities;
 using Domain.Repositories;
 using Microsoft.Azure.Functions.Worker;
@@ -8,33 +9,18 @@ namespace Serverless_Api
 {
     public partial class RunGetProposedBbqs
     {
-        private readonly Person _user;
-        private readonly IBbqRepository _bbqs;
-        private readonly IPersonRepository _repository;
-        public RunGetProposedBbqs(IPersonRepository repository, IBbqRepository bbqs, Person user)
+        private readonly IBbqService _bbqService;
+        public RunGetProposedBbqs(IBbqService bbqService)
         {
-            _user = user;
-            _bbqs = bbqs;
-            _repository = repository;
+            _bbqService = bbqService;
         }
 
         [Function(nameof(RunGetProposedBbqs))]
         public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "churras")] HttpRequestData req)
         {
-            var snapshots = new List<object>();
-            Person moderator = await _repository.GetAsync(_user.Id);
+            object? response = await _bbqService.GetProposedAsync();
 
-            foreach (string bbqId in moderator.Invites.Where(i => i.Date > DateTime.Now).Select(o => o.Id).ToList())
-            {
-                Bbq bbq = await _bbqs.GetAsync(bbqId);
-
-                if(bbq.Status != BbqStatus.ItsNotGonnaHappen)
-                {
-                    snapshots.Add(bbq.TakeSnapshot());
-                }
-            }
-
-            return await req.CreateResponse(HttpStatusCode.Created, snapshots);
+            return await req.CreateResponse(HttpStatusCode.Created, response);
         }
     }
 }
