@@ -21,25 +21,6 @@ namespace Serverless_Api
             _snapshots = snapshots;
         }
 
-        private async Task<int> GetNumberOfAcceptedInvites(string bbqId)
-        {
-            int accpetedInvites = 0;
-            var Lookups = await _snapshots.AsQueryable<Lookups>("Lookups").SingleOrDefaultAsync();
-
-            foreach (var personId in Lookups.PeopleIds)
-            {
-                Person person = await _repository.GetAsync(personId);
-                if(person.Invites
-                    .Any(x => x.Id == bbqId
-                    && x.Status == InviteStatus.Accepted))
-                {
-                    accpetedInvites++;
-                }
-            }
-
-            return accpetedInvites;
-        }
-
         [Function(nameof(RunAcceptInvite))]
         public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "put", Route = "person/invites/{inviteId}/accept")] HttpRequestData req, string inviteId)
         {
@@ -65,7 +46,7 @@ namespace Serverless_Api
             bbq.Apply(@acceptInviteEvent);
 
             //quando tiver 7 pessoas ele está confirmado
-            if(await GetNumberOfAcceptedInvites(inviteId) == 7)
+            if(bbq.ConfirmedPeople.Count == 7)
             {
                 BbqStatusChanged @chagedBbqStatusEvent = new BbqStatusChanged(BbqStatus.Confirmed);
                 bbq.Apply(@chagedBbqStatusEvent);
