@@ -12,6 +12,25 @@ namespace Domain.Entities
         public bool IsTrincasPaying { get; set; }
         public ShoppingList? ShoppingList { get; set; }
         public List<string>? ConfirmedPeople { get; set; }
+
+        private (float, float) GetShoppingItems(bool isVeg)
+        {
+            float meatAdd = 0.0f;
+            float vegsAdd = 0.0f;
+
+            if (isVeg)
+            {
+                vegsAdd = 0.6f;
+            }
+            else
+            {
+                meatAdd = 0.3f;
+                vegsAdd = 0.3f;
+            }
+
+            return (vegsAdd, meatAdd);
+        }
+
         public void When(ThereIsSomeoneElseInTheMood @event)
         {
             Id = @event.Id.ToString();
@@ -42,20 +61,9 @@ namespace Domain.Entities
 
         public void When(InviteWasAccepted @event)
         {
-            float meatAdd = 0.0f;
-            float vegsAdd = 0.0f;
-
-            if (@event.IsVeg)
-            {
-                vegsAdd = 0.6f;
-            }
-            else
-            {
-                meatAdd = 0.3f;
-                vegsAdd = 0.3f;
-            }
-
+            (float vegsAdd, float meatAdd) = GetShoppingItems(@event.IsVeg);
             ShoppingList = ShoppingList.Add(vegsAdd, meatAdd);
+
             ConfirmedPeople.Add(@event.PersonId);
         }
 
@@ -66,21 +74,10 @@ namespace Domain.Entities
             //deve ser retirado da lista de compras do churrasco.
             //Se ao rejeitar, o número de pessoas confirmadas no churrasco for menor que sete,
             //o churrasco deverá ter seu status atualizado para “Pendente de confirmações”. 
-            
-            float meatSub = 0.0f;
-            float vegsSub = 0.0f;
 
-            if (@event.IsVeg)
-            {
-                vegsSub = 0.6f;
-            }
-            else
-            {
-                meatSub = 0.3f;
-                vegsSub = 0.3f;
-            }
-
+            (float vegsSub, float meatSub) = GetShoppingItems(@event.IsVeg);
             ShoppingList = ShoppingList.Sub(vegsSub, meatSub);
+
             ConfirmedPeople.Remove(@event.PersonId);
 
             if(Status == BbqStatus.Confirmed
