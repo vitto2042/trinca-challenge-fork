@@ -22,13 +22,19 @@ namespace Application.Services
             _bbqs = bbqs;
         }
 
-        private async Task<bool> LastAcceptedInviteWasVeg(string personId)
+        private async Task<bool> LastAcceptedInviteWasVeg(string personId, string bbqId)
         {
             List<IEvent> events = await _persons.GetEventsAsync(personId);
-            InviteWasAccepted lastAcceptedInvite = events
-                .LastOrDefault(x => x.GetType() == typeof(InviteWasAccepted)) as InviteWasAccepted;
+            List<InviteWasAccepted> acceptedInvites = new List<InviteWasAccepted>();
+            foreach(var @event in events)
+            {
+                if(@event.GetType() == typeof(InviteWasAccepted))
+                {
+                    acceptedInvites.Add(@event as InviteWasAccepted);
+                }
+            }
 
-            return lastAcceptedInvite.IsVeg;
+            return acceptedInvites.LastOrDefault(x => x.InviteId == bbqId).IsVeg;
         }
 
         public async Task<object?> AcceptInviteAsync(string personId, string inviteId, bool isVeg)
@@ -90,7 +96,7 @@ namespace Application.Services
                 {
                     InviteId = inviteId,
                     PersonId = person.Id,
-                    IsVeg = await LastAcceptedInviteWasVeg(person.Id)
+                    IsVeg = await LastAcceptedInviteWasVeg(person.Id, inviteId)
                 });
 
                 await _bbqs.SaveAsync(bbq);
